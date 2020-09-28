@@ -1,6 +1,6 @@
 PREFIX ?= /usr
 CC ?= gcc
-CFLAGS ?= -Wall -std=gnu90
+CFLAGS ?= -Wall -Wextra -Werror -std=gnu90 -O3
 SRC_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 

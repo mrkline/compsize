@@ -86,6 +86,7 @@ static void die(const char *txt, ...)
 
 static void sigusr1(int dummy)
 {
+    (void)dummy;
     sig_stats = 1;
 }
 

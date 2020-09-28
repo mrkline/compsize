@@ -83,6 +83,7 @@ static int internal_nodes = 0;
 static struct radix_tree_node *
 radix_tree_node_alloc(struct radix_tree_root *root)
 {
+	(void)root;
 	struct radix_tree_node *ret;
 	ret = malloc(sizeof(struct radix_tree_node));
 	if (ret) {
@@ -107,20 +108,21 @@ radix_tree_node_free(struct radix_tree_node *node)
  */
 int radix_tree_preload(gfp_t gfp_mask)
 {
+	(void)gfp_mask;
 	struct radix_tree_preload *rtp;
 	struct radix_tree_node *node;
 	int ret = -ENOMEM;
 
 	preempt_disable();
 	rtp = &__get_cpu_var(radix_tree_preloads);
-	while (rtp->nr < ARRAY_SIZE(rtp->nodes)) {
+	while (rtp->nr < (ssize_t)ARRAY_SIZE(rtp->nodes)) {
 		preempt_enable();
 		node = radix_tree_node_alloc(NULL);
 		if (node == NULL)
 			goto out;
 		preempt_disable();
 		rtp = &__get_cpu_var(radix_tree_preloads);
-		if (rtp->nr < ARRAY_SIZE(rtp->nodes))
+		if (rtp->nr < (ssize_t)ARRAY_SIZE(rtp->nodes))
 			rtp->nodes[rtp->nr++] = node;
 		else
 			radix_tree_node_free(node);
@@ -175,7 +177,7 @@ static inline int root_tag_get(struct radix_tree_root *root, unsigned int tag)
  */
 static inline int any_tag_set(struct radix_tree_node *node, unsigned int tag)
 {
-	int idx;
+	size_t idx;
 	for (idx = 0; idx < RADIX_TREE_TAG_LONGS; idx++) {
 		if (node->tags[tag][idx])
 			return 1;
