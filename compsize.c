@@ -54,6 +54,19 @@ struct workspace
 
 static const char *comp_types[MAX_ENTRIES] = { "none", "zlib", "lzo", "zstd" };
 
+static const char* get_comp_type(unsigned compression)
+{
+    if (compression == PREALLOC) {
+        return "preallocated";
+    }
+    if (compression <= 3) {
+        return comp_types[compression];
+    }
+    else {
+            return "unknown";
+    }
+}
+
 static int opt_bytes = 0;
 static int opt_one_fs = 0;
 static int sig_stats = 0;
@@ -137,6 +150,7 @@ static void parse_file_extent_item(uint8_t *bp, uint32_t hlen,
         disk_num_bytes = hlen-inline_header_sz;
         DPRINTF("inline: ram_bytes=%lu compression=%u disk_num_bytes=%lu\n",
              ram_bytes, comp_type, disk_num_bytes);
+        fprintf(stderr, "%s: inline extent, %s\n", filename, get_comp_type(comp_type));
         ws->disk[comp_type] += disk_num_bytes;
         ws->uncomp[comp_type] += ram_bytes;
         ws->refd[comp_type] += ram_bytes;
@@ -159,6 +173,7 @@ static void parse_file_extent_item(uint8_t *bp, uint32_t hlen,
 
     DPRINTF("regular: ram_bytes=%lu compression=%u disk_num_bytes=%lu disk_bytenr=%lu\n",
          ram_bytes, comp_type, disk_num_bytes, disk_bytenr);
+    fprintf(stderr, "%s: %s\n", filename, get_comp_type(comp_type));
 
     if (!IS_ALIGNED(disk_bytenr, 1 << 12))
         die("%s: Extent not 4K-aligned at %"PRIu64"?!?\n", filename, disk_bytenr);
